@@ -7,6 +7,7 @@ import ResetPassword from './components/Auth/ResetPassword';
 import Profile from './components/Auth/Profile';
 import PrivateRoute from './components/Auth/PrivateRoute';
 import EditProfile from './components/Auth/EditProfile';
+import ExpenseTracker from './components/Auth/ExpenseTracker';
 
 const App = () => {
   return (
@@ -18,11 +19,13 @@ const App = () => {
           <Route path='/login' element={<Login />} />
           <Route path='/reset-password' element={<ResetPassword />} />
           <Route path='/' element={<Signup />} />
+          {/* <Route path='/expense-tracker' element={<ExpenseTracker />} /> */}
 
           {/* Protected Routes */}
           <Route element={<PrivateRoute />}>
             <Route path='/profile' element={<Profile />} />
             <Route path='/edit-profile' element={<EditProfile />} />
+            <Route path='/expense-tracker' element={<ExpenseTracker />} />
           </Route>
         </Routes>
       </Router>

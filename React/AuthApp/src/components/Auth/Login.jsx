@@ -33,7 +33,8 @@ const Login = () => {
         draggable: true,
         progress: undefined,
       });
-      setTimeout(() => navigate('/profile'), 3100);
+      // setTimeout(() => navigate('/profile'), 3100);
+      setTimeout(() => navigate('/expense-tracker'), 3100);
     } else {
       toast.error('Invalid Credentials', {
         position: 'top-right',
