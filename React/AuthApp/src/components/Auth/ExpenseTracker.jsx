@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 import {
   Container,
   TextField,
@@ -17,35 +19,35 @@ import { Delete, Edit } from '@mui/icons-material';
 
 export default function ExpenseTracker() {
   const [expenses, setExpenses] = useState([]);
-  const [title, setTitle] = useState('');
-  const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState('');
-  const [date, setDate] = useState('');
   const [editIndex, setEditIndex] = useState(null);
 
-  const handleAddExpense = () => {
-    if (title && amount && category && date) {
-      const newExpense = { title, amount: parseFloat(amount), category, date };
+  const validationSchema = Yup.object({
+    title: Yup.string().required('Title is required'),
+    amount: Yup.number()
+      .positive('Amount must be positive')
+      .required('Amount is required'),
+    category: Yup.string().required('Category is required'),
+    date: Yup.date().required('Date is required'),
+  });
+
+  const formik = useFormik({
+    initialValues: { title: '', amount: '', category: '', date: '' },
+    validationSchema,
+    onSubmit: (values, { resetForm }) => {
       if (editIndex !== null) {
-        let updatedExpenses = [...expenses];
-        updatedExpenses[editIndex] = newExpense;
+        const updatedExpenses = [...expenses];
+        updatedExpenses[editIndex] = values;
         setExpenses(updatedExpenses);
         setEditIndex(null);
       } else {
-        setExpenses([...expenses, newExpense]);
+        setExpenses([...expenses, values]);
       }
-      setTitle('');
-      setAmount('');
-      setCategory('');
-      setDate('');
-    }
-  };
+      resetForm();
+    },
+  });
 
   const handleEditExpense = (index) => {
-    setTitle(expenses[index].title);
-    setAmount(expenses[index].amount);
-    setCategory(expenses[index].category);
-    setDate(expenses[index].date);
+    formik.setValues(expenses[index]);
     setEditIndex(index);
   };
 
@@ -55,7 +57,7 @@ export default function ExpenseTracker() {
 
   const totalExpense = useMemo(() => {
     return expenses
-      .reduce((acc, expense) => acc + expense.amount, 0)
+      .reduce((acc, expense) => acc + parseFloat(expense.amount), 0)
       .toFixed(2);
   }, [expenses]);
 
@@ -91,46 +93,64 @@ export default function ExpenseTracker() {
           Total Expense: ${totalExpense}
         </Typography>
         <Paper style={{ padding: '20px', borderRadius: '10px' }}>
-          <TextField
-            label='Expense Title'
-            fullWidth
-            margin='normal'
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          <TextField
-            label='Amount'
-            type='number'
-            fullWidth
-            margin='normal'
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-          />
-          <TextField
-            label='Category'
-            fullWidth
-            margin='normal'
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-          />
-          <TextField
-            label='Date'
-            type='date'
-            fullWidth
-            margin='normal'
-            InputLabelProps={{ shrink: true }}
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
-          <Button
-            variant='contained'
-            color='primary'
-            fullWidth
-            onClick={handleAddExpense}
-            style={{ marginTop: '10px' }}
-          >
-            {editIndex !== null ? 'Update Expense' : 'Add Expense'}
-          </Button>
+          <form onSubmit={formik.handleSubmit}>
+            <TextField
+              label='Expense Title'
+              fullWidth
+              margin='normal'
+              name='title'
+              value={formik.values.title}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.title && Boolean(formik.errors.title)}
+              helperText={formik.touched.title && formik.errors.title}
+            />
+            <TextField
+              label='Amount'
+              type='number'
+              fullWidth
+              margin='normal'
+              name='amount'
+              value={formik.values.amount}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.amount && Boolean(formik.errors.amount)}
+              helperText={formik.touched.amount && formik.errors.amount}
+            />
+            <TextField
+              label='Category'
+              fullWidth
+              margin='normal'
+              name='category'
+              value={formik.values.category}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.category && Boolean(formik.errors.category)}
+              helperText={formik.touched.category && formik.errors.category}
+            />
+            <TextField
+              label='Date'
+              type='date'
+              fullWidth
+              margin='normal'
+              name='date'
+              InputLabelProps={{ shrink: true }}
+              value={formik.values.date}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.date && Boolean(formik.errors.date)}
+              helperText={formik.touched.date && formik.errors.date}
+            />
+            <Button
+              variant='contained'
+              color='primary'
+              fullWidth
+              type='submit'
+              style={{ marginTop: '10px' }}
+            >
+              {editIndex !== null ? 'Update Expense' : 'Add Expense'}
+            </Button>
+          </form>
         </Paper>
 
         <TableContainer
@@ -151,7 +171,7 @@ export default function ExpenseTracker() {
               {expenses.map((expense, index) => (
                 <TableRow key={index}>
                   <TableCell>{expense.title}</TableCell>
-                  <TableCell>{expense.amount.toFixed(2)}</TableCell>
+                  <TableCell>{parseFloat(expense.amount).toFixed(2)}</TableCell>
                   <TableCell>{expense.category}</TableCell>
                   <TableCell>{expense.date}</TableCell>
                   <TableCell>
